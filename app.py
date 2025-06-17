@@ -15,10 +15,10 @@ class ProjectInfo(BaseModel):
 
 class EmailRequest(BaseModel):
     freelancer: ContactInfo
-    contractor: ContactInfo
+    employer: ContactInfo
     project: ProjectInfo
 
-@app.post("/send-contact-emails")
+@app.post("/api/email/enviar-contato")
 async def send_contact_emails(request: EmailRequest):
     try:
         # Mensagem para o freelancer
@@ -30,18 +30,18 @@ async def send_contact_emails(request: EmailRequest):
                 f"Você foi selecionado para o projeto '{request.project.title}'.\n"
                 f"Descrição: {request.project.description}\n\n"
                 f"Contato do contratante:\n"
-                f"Nome: {request.contractor.name}\n"
-                f"E-mail: {request.contractor.email}\n"
+                f"Nome: {request.employer.name}\n"
+                f"E-mail: {request.employer.email}\n"
             ),
             subtype="plain" 
         )
 
         # Mensagem para o contratante
-        message_contractor = MessageSchema(
+        message_employer = MessageSchema(
             subject=f"Contato do freelancer para projeto: {request.project.title}",
-            recipients=[request.contractor.email],
+            recipients=[request.employer.email],
             body=(
-                f"Olá {request.contractor.name},\n\n"
+                f"Olá {request.employer.name},\n\n"
                 f"Você selecionou o freelancer {request.freelancer.name} para o projeto '{request.project.title}'.\n"
                 f"Contato do freelancer:\n"
                 f"E-mail: {request.freelancer.email}\n"
@@ -53,7 +53,7 @@ async def send_contact_emails(request: EmailRequest):
         fm = FastMail(conf)
 
         await fm.send_message(message_freelancer)
-        await fm.send_message(message_contractor)
+        await fm.send_message(message_employer)
 
         return {"message": "Emails enviados com sucesso!"}
 
